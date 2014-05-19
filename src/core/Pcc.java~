@@ -156,6 +156,20 @@ public class Pcc extends Algo {
 				    				cout = labelCourant.getCoutCourant() + succ.getTempsArrete();
 				    		}
 			    			
+			    			// si l'utilisateur a choisi l'algo de A Star, on règle l'estimation
+			    			/*if(choixAlgo == 1){
+			    				// on récupère le noeud destination
+			    				Noeud noeudDestination = this.graphe.getListeNoeuds().get(destination);
+			    				// si l'utilisateur a choisi PCC A Star en distance
+				    			if(isEnTemps == 0) {
+				    				cout = labelCourant.getCoutCourant() + succ.getLongueurArrete() + calculerEstimationDistance(noeudSuccCourant,noeudDestination);
+				    			}
+				    			// si l'utilisateur a choisi PCC A Star en temps
+				    			if(isEnTemps == 1){
+				    				cout = labelCourant.getCoutCourant() + succ.getTempsArrete() + calculerEstimationTemps(noeudSuccCourant,noeudDestination);
+				    			}
+			    			}*/
+			    			
 			    			// si cette fois, le coût total obtenu est inférieur à son coût total d'avant
 			    			if (cout < labelNoeudSuccCourant.getCoutCourant()) {
 			    				// on remplace l'ancien coût avec ce nouveau coût total
