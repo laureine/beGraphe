@@ -1,9 +1,8 @@
 package core ;
-
 import java.awt.Color;
 import java.io.* ;
 import java.util.HashMap;
-import base.Readarg ;
+import base.* ;
 
 	/**
 	 * La classe Pcc va implémenter l'algorithme de Dijkstra
@@ -15,6 +14,8 @@ public class Pcc extends Algo {
     protected int zoneDestination ;
     protected int origine ;
     protected int destination ;
+    
+    protected Dessin dessin ;
     
     protected long tempsExecution;
     
@@ -42,7 +43,7 @@ public class Pcc extends Algo {
 	// le nombre de sommets marqués
 	private int nbMarque=0;
 	
-	// le nombre de sommets parcourus (c'est à dire placé dans le tas)
+	// le nombre de sommets parcourus 
 	private int nbParcouru=0;
 	
     // booléan qui permet utilisateurs à choisir entre l'algo Dijkstra(0) ou A*(1)
@@ -51,7 +52,7 @@ public class Pcc extends Algo {
 	/**
 	 * constructeur, ici, notre fonction qui lit tous les paramètres d'entrée
 	 */
-	public Pcc(Graphe gr, PrintWriter sortie, Readarg readarg) {
+	public Pcc(Graphe gr, PrintStream sortie, Readarg readarg) {
 		super(gr, sortie, readarg) ;
 		
 		// demander la zone et le sommet départ.
@@ -67,6 +68,9 @@ public class Pcc extends Algo {
 		
 		// demander l'utilisateur à choisir entre temps et distance
 		this.isEnTemps = readarg.lireInt ("Distance(0) ou Temps(1) ?");
+		
+		// Demander le dessin du graphe
+		dessin = gr.getDessin() ;
     }
 
 	/**
@@ -93,35 +97,65 @@ public class Pcc extends Algo {
 	/**
 	 * initialise le tas, et met les labels des sommets dans le hashmap
 	 */
-	public void initialisationAlgoDijkstra(){
+	public void initialisationAlgos(){
  	    
-    	// on met les labels de tous les noeuds dans la map de correspondance "numéro de noeud, label"
-    	for (int i=0; i<numNoeudGraphe ; i++){
+     // on met les labels de tous les noeuds dans la map de correspondance "numéro de noeud, label"
+     for (int i=0; i<numNoeudGraphe ; i++){
     		int numNoeudCourant = this.graphe.getListeNoeuds().get(i).getId_noeud();
-    		if(numNoeudCourant == origine)
-    		{
-    			Label labelOrigine = new Label(origine, -1, 0, false) ;
-    			mapCorrespondanceNoeudLabel.put(numNoeudCourant, labelOrigine);
-    			tasLabel.insert(labelOrigine);
-    			nbParcouru++;
-    		}
-    		else {
-    			mapCorrespondanceNoeudLabel.put(numNoeudCourant, new Label(i, false));
-    		}
+    		
+    	//Initialisation de l'algorithme de Djistra	
+    	if (choixAlgo==0){
+    		if(numNoeudCourant == origine){
+    			// Affichage du sommet origine sur la carte
+    	    	   dessin.setColor(Color.green) ;
+    	    	   dessin.drawPoint(this.graphe.getListeNoeuds().get(origine).getLongitude(), this.graphe.getListeNoeuds().get(origine).getLatitude(), 2) ;
+    	    	
+    	    	//initialisation du label du sommet d'origine et insertion dans le tas
+    	    		Label labelOrigine = new Label(origine, -1, 0, false, false) ;
+    	    		mapCorrespondanceNoeudLabel.put(numNoeudCourant, labelOrigine);
+        			tasLabel.insert(labelOrigine);
+        			nbParcouru++;
+        	}
+        	else 
+            		mapCorrespondanceNoeudLabel.put(numNoeudCourant, new Label(i, false));
     	}
-	}
+            		
+    	 //Initialisation de l'algorithme de A* 
+    	else{
+    		if(numNoeudCourant == origine){
+    			// Affichage du sommet origine sur la carte
+    	    	   dessin.setColor(Color.green) ;
+    	    	   dessin.drawPoint(this.graphe.getListeNoeuds().get(origine).getLongitude(), this.graphe.getListeNoeuds().get(origine).getLatitude(), 2) ;
+    	    	
+    	    	//initialisation du label du sommet d'origine et insertion dans le tas
+    	    		Label labelOrigine = new Label(origine, -1, 0, false, true) ;
+    	    		mapCorrespondanceNoeudLabel.put(numNoeudCourant, labelOrigine);
+        			tasLabel.insert(labelOrigine);
+        			nbParcouru++;
+        	}
+        	else 
+            		mapCorrespondanceNoeudLabel.put(numNoeudCourant, new Label(i, true));
+    	    		
+    	}
+    			
+    }
+    		
+    	
+ }
     	
     /**
      * algorithme de Dijkstra et A star avec le tas
      * à utilisateur de choisir l'algorithme à lancer
-	/* complexité pour ces deux algorithmes : o(nlogn) 
-     */
+	/* complexité de l'algorithme de Djistra: o(nlogn) 
+	 * complexité de l'algorithme de A Star: o(nlogn)
+	 */
+     
     public void algoPCC(){
     	
     	// commencer le calcul temps d'exécution de l'algorithme
     	long debut = System.nanoTime();
     	// initialiser l'algo
-    	this.initialisationAlgoDijkstra();
+    	this.initialisationAlgos();
     	// tourner l'algo jusqu'à le noeud destination soit marqué
 		do{
 	    	// si le tas n'est pas vide
@@ -130,7 +164,7 @@ public class Pcc extends Algo {
 	        	Label labelCourant = tasLabel.deleteMin();
 	        	// on le marque
 	        	labelCourant.setMarquage(true);
-	        	// on décrémente le nombre d'élément dans le tas, et incrémente le nombre d'élément marqué
+	        	// on décrémente le nombre d'élément dans le tas, et incrémente le nombre d'éléments marqués
 	        	nbMaxTas--;
 	        	nbMarque++;
 	        	
@@ -142,24 +176,45 @@ public class Pcc extends Algo {
 		        		Noeud noeudSuccCourant = succ.getNoeudDestination();
 		        		// on obtient son label à partir de son numéro
 		        		Label labelNoeudSuccCourant = mapCorrespondanceNoeudLabel.get(noeudSuccCourant.getId_noeud());
-		        		// si ce noeud successeur n'est pas encore marqué par algo
+		        		// si ce noeud successeur n'est pas encore marqué par algo (ie si son marquage est encore à false)
 			    		if(!labelNoeudSuccCourant.isMarque()){
-			    			double cout = 0;
 
 			    			// si l'utilisateur a choisi l'algo de Dijkstra, on met estimation à 0
 			    			if(choixAlgo == 0){
 			    				// si l'utilisateur a choisi pcc Dijkstra en distance
-				    			if(isEnTemps == 0) 
-				    				cout = labelCourant.getCoutCourant() + succ.getLongueurArrete();
+				    			if(isEnTemps == 0) {
+				    				labelCourant.setCoutEstimation(0);
+				    				labelNoeudSuccCourant.setCoutTotal(labelCourant.getCoutCourant(), labelCourant.getCoutEstimation(), succ.getLongueurArrete());
+				    			}
 				    			// si l'utilisateur a choisi pcc Dijkstra en temps
 				    			if(isEnTemps == 1)
-				    				cout = labelCourant.getCoutCourant() + succ.getTempsArrete();
+				    				labelCourant.setCoutEstimation(0);
+				    				labelNoeudSuccCourant.setCoutTotal(labelCourant.getCoutCourant(),labelCourant.getCoutEstimation(),succ.getTempsArrete());
 				    		}
 			    			
+			    			// si l'utilisateur a choisi l'algo de A Star, on règle l'estimation
+			    			if(choixAlgo == 1){
+			    				// on récupère le noeud destination
+			    				Noeud noeudDestination = this.graphe.getListeNoeuds().get(destination);
+			    				// si l'utilisateur a choisi PCC A Star en distance
+				    			if(isEnTemps == 0) {
+				    				labelCourant.setCoutEstimation(calculerEstimationDistance(noeudSuccCourant,noeudDestination));
+				    				labelNoeudSuccCourant.setCoutTotal(labelCourant.getCoutCourant(),labelCourant.getCoutEstimation(),succ.getLongueurArrete()); 
+				    			}
+				    			
+				    			// si l'utilisateur a choisi PCC A Star en temps
+				    			if(isEnTemps == 1){
+				    				labelCourant.setCoutEstimation(calculerEstimationTemps(noeudSuccCourant,noeudDestination));
+				    				labelNoeudSuccCourant.setCoutTotal( labelCourant.getCoutCourant(),succ.getTempsArrete(),succ.getLongueurArrete());
+				    			}
+				    			
+			    			}
+			    			
+			    		
 			    			// si cette fois, le coût total obtenu est inférieur à son coût total d'avant
-			    			if (cout < labelNoeudSuccCourant.getCoutCourant()) {
+			    			if (labelNoeudSuccCourant.getCoutTotal() < labelNoeudSuccCourant.getCoutCourant()) {
 			    				// on remplace l'ancien coût avec ce nouveau coût total
-			    				labelNoeudSuccCourant.setCoutCourant(cout);
+			    				labelNoeudSuccCourant.setCoutCourant(labelNoeudSuccCourant.getCoutTotal());
 			    				// on change son père à ce noeud courant
 			    				labelNoeudSuccCourant.setId_sommetPere(noeudCourant.getId_noeud());
 			    			}
@@ -171,7 +226,7 @@ public class Pcc extends Algo {
 				    		}
 			    			// sinon
 			    			else{
-			    				// on le met dans le tas, et garde le nombre maximal d'élément dans le tas
+			    				// on le met dans le tas
 			    				tasLabel.insert(labelNoeudSuccCourant);
 			    				nbParcouru++;
 			    				nbMaxTas++;
@@ -233,18 +288,18 @@ public class Pcc extends Algo {
     }
     
 	// calculer l'estimation entre noeud courant et noeud destination
-	public float calculerEstimationDistance(Noeud noeudSuccCourant, Noeud noeudDestination){
+	public double calculerEstimationDistance(Noeud noeudSuccCourant, Noeud noeudDestination){
 		float latitude_noeudSuccCourant = noeudSuccCourant.getLatitude();
 		float longitude_noeudSuccCourant = noeudSuccCourant.getLongitude();
 		float latitude_noeudDestination = noeudDestination.getLatitude();
 		float longitude_noeudDestination = noeudDestination.getLongitude();
-		return (float)Graphe.distance(longitude_noeudSuccCourant, latitude_noeudSuccCourant, 
+		return (double)Graphe.distance(longitude_noeudSuccCourant, latitude_noeudSuccCourant, 
 				longitude_noeudDestination, latitude_noeudDestination);
 	}
 	
 	// calculer l'estimation en temps 
-	public float calculerEstimationTemps(Noeud noeudSuccCourant, Noeud noeudDestination){
-		float coutEstimationDistance = calculerEstimationDistance(noeudSuccCourant,noeudDestination);
+	public double calculerEstimationTemps(Noeud noeudSuccCourant, Noeud noeudDestination){
+		double coutEstimationDistance = calculerEstimationDistance(noeudSuccCourant,noeudDestination);
 		// on prend ici la vitesse maximale 130 km/h, retourner le temps en seconde
 		return 3600*(coutEstimationDistance / (130*1000));
 	}
@@ -316,3 +371,4 @@ public class Pcc extends Algo {
 		}
     }
 }
+
