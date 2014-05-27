@@ -1,7 +1,7 @@
 package base ;
 
 /*
- * Ce programme propose de lancer divers algorithmes sur les graphes
+ * Ce programme propose de lancer divers algorithmes sur les graphes 
  * a partir d'un menu texte, ou a partir de la ligne de commande (ou des deux).
  *
  * A chaque question posee par le programme (par exemple, le nom de la carte), 
@@ -30,9 +30,11 @@ public class Launch {
 	System.out.println () ;
 	System.out.println ("0 - Quitter") ;
 	System.out.println ("1 - Composantes Connexes") ;
-	System.out.println ("2 - Plus court chemin") ;
-	System.out.println ("4 - Cliquer sur la carte pour obtenir un numero de sommet.") ;
-	System.out.println ("5 - Charger un fichier de chemin (.path) et le verifier.") ;
+	System.out.println ("2 - Plus court chemin standard") ;
+	System.out.println ("3 - Plus court chemin A-star") ;
+	System.out.println ("4 - Passer en mode esclave (ouvre une socket UDP)") ;
+	System.out.println ("5 - Cliquer sur la carte pour obtenir un numero de sommet.") ;
+	System.out.println ("6 - Charger un fichier de chemin (.path) et le verifier.") ;
 	
 	System.out.println () ;
     }
@@ -45,16 +47,20 @@ public class Launch {
     public void go() {
 
 	try {
-	    System.out.println ("**") ;
-	    System.out.println ("** Programme de test des algorithmes de graphe.");
+	    System.out.println ("\n\n  **************************************FOUENANG & WANG ************************************\n\n") ;
+	    System.out.println ("**************************** Programme de test des algorithmes de graphe.*******************************");
 	    System.out.println ("**") ;
 	    System.out.println () ;
+	    
+	    afficherMenu();
 
 	    // On obtient ici le nom de la carte a utiliser.
 	    String nomcarte = this.readarg.lireString ("Nom du fichier .map a utiliser ? ") ;
+
 	    DataInputStream mapdata = Openfile.open (nomcarte) ;
 
-	    boolean display = (1 == this.readarg.lireInt ("Voulez-vous une sortie graphique (0 = non, 1 = oui) ? ")) ;	    
+	    boolean display = (1 == this.readarg.lireInt ("Voulez-vous une sortie graphique (0 = non, 1 = oui) ? ")) ;
+
 	    Dessin dessin = (display) ? new DessinVisible(800,600) : new DessinInvisible() ;
 
 	    Graphe graphe = new Graphe(nomcarte, mapdata, dessin) ;
@@ -65,7 +71,7 @@ public class Launch {
 	    int choix ;
 	    
 	    while (continuer) {
-		this.afficherMenu () ;
+		//this.afficherMenu () ;
 		choix = this.readarg.lireInt ("Votre choix ? ") ;
 		
 		// Algorithme a executer
@@ -79,9 +85,11 @@ public class Launch {
 		
 		case 2 : algo = new Pcc(graphe, this.fichierSortie (), this.readarg) ; break ;
 		
-		case 4 : graphe.situerClick() ; break ;
+		case 3 : algo = new PccStar(graphe, this.fichierSortie (), this.readarg) ; break ;
 
-		case 5 :
+		case 5 : graphe.situerClick() ; break ;
+
+		case 6 :
 		    String nom_chemin = this.readarg.lireString ("Nom du fichier .path contenant le chemin ? ") ;
 		    graphe.verifierChemin(Openfile.open (nom_chemin), nom_chemin) ;
 		    break ;
@@ -94,7 +102,7 @@ public class Launch {
 		if (algo != null) { algo.run() ; }
 	    }
 	    
-	    System.out.println ("Programme terminé.") ;
+	    //System.out.println ("Programme termine.") ;
 	    System.exit(0) ;
 	    
 	    
@@ -108,11 +116,14 @@ public class Launch {
     public PrintStream fichierSortie () {
 	PrintStream result = System.out ;
 
-	String nom = this.readarg.lireString ("Nom du fichier de sortie ? ") ;
+	String nom ="performance.txt";
+	File fic=new File(nom);
 
 	if ("".equals(nom)) { nom = "/dev/null" ; }
 
-	try { result = new PrintStream(nom) ; }
+	try { result = new PrintStream(new FileOutputStream(fic,true)) ;
+		//System.out.println(fic.getAbsolutePath());
+	}
 	catch (Exception e) {
 	    System.err.println ("Erreur a l'ouverture du fichier " + nom) ;
 	    System.exit(1) ;
@@ -122,3 +133,4 @@ public class Launch {
     }
 
 }
+

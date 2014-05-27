@@ -20,7 +20,7 @@ public class Label implements Comparable<Label> {
 	protected boolean marquage;
 	protected boolean isAstar;
 	//Variables à utiliser pour A*
-	protected double coutEstimation = 0;
+	protected double coutEstimation;
     protected double coutTotal;
     
 	
@@ -28,25 +28,22 @@ public class Label implements Comparable<Label> {
 	 * constructeurs
 	 * un label par défault : pas de père, coût infini, non marqué
 	 */
-	public Label(int id_sommetCourant, boolean isAstar){
+	public Label(int id_sommetCourant, boolean isAStar){
 		this.id_sommetCourant = id_sommetCourant;
 		this.id_sommetPere = -1;
 		this.coutCourant = Double.MAX_VALUE;
-		this.coutEstimation = this.getCoutEstimation();
-		this.coutTotal = Double.MAX_VALUE;
 		this.marquage = false;
-		this.isAstar = isAstar;
+		this.coutEstimation = -1;
+		this.coutTotal = Double.MAX_VALUE;
+		this.isAstar = isAStar;
 	}
 
 
-	public Label(int id_sommetCourant, int id_sommetPere, double coutCourant, boolean marquage, boolean isAstar){
+	public Label(int id_sommetCourant, int id_sommetPere, double coutCourant, boolean marquage){
 		this.id_sommetCourant = id_sommetCourant;
 		this.id_sommetPere = id_sommetPere;
 		this.coutCourant = coutCourant;
-		this.coutEstimation = this.getCoutEstimation();
-		this.coutTotal = this.getCoutTotal();
 		this.marquage = marquage;
-		this.isAstar = isAstar;
 	}
 	
 	
@@ -132,10 +129,9 @@ public class Label implements Comparable<Label> {
 	}
 
 
-	public void setCoutTotal(double CoutCourant,double CoutEstimation, double coutArete) {
-		coutTotal = CoutCourant + CoutEstimation + coutArete ;
+	public void setCoutTotal() {
+		coutTotal = this.getCoutEstimation() + this.getCoutCourant();
 	}
 
 
 }
-
